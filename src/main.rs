@@ -31,11 +31,11 @@ struct Node<V, W> where V: Clone, W: Clone {
 }
 
 impl<V: std::clone::Clone, W: std::clone::Clone> Node<V, W> {
-    fn new(val: V) -> Node<V, W> {
-        Node {
+    fn new(val: V) -> Rc<RefCell<Node<V, W>>> {
+        Rc::new(RefCell::new(Node {
             val,
             edges: Vec::new(),
-        }
+        }))
     }
 
     fn get_deg(&self) -> usize {
@@ -54,16 +54,18 @@ struct Edge<V, W> where V: Clone, W: Clone {
 
 impl<V: std::clone::Clone, W: std::clone::Clone> Edge<V, W> {
     // TODO (GM): Is there an option to provide a default value for weight?
-    fn new(a: &mut Node<V, W>, b: &mut Node<V, W>, weight: W) -> Edge<V, W> {
-        let edge = Edge {
+    fn new(a: Rc<RefCell<Node<V, W>>>, b: Rc<RefCell<Node<V, W>>>, weight: W) -> Rc<Edge<V, W>> {
+        let edge = Rc::new(Edge {
             // TODO (GM): Is cloning really the way?
-            a: Rc::new(RefCell::new(a.clone())),
-            b: Rc::new(RefCell::new(b.clone())),
+            a: a.clone(),
+            b: b.clone(),
             weight,
-        };
+        });
 
-        a.edges.push(edge.clone().into());
-        b.edges.push(edge.clone().into());
+        // TODO (GM): Again, is cloning the way?
+        a.borrow_mut().edges.push(edge.clone());
+        b.borrow_mut().edges.push(edge.clone());
+
         edge
     }
 }
