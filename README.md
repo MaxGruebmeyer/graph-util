@@ -8,7 +8,7 @@ edges.
 # Graph visualization
 
 Build a graph visualisation tool, that renders graphs as objects in the
-$`\mathbb{R}^3`$. For that, assign each vertex a $``3`$-dimensional coordinate,
+$`\mathbb{R}^3`$. For that, assign each vertex a $`3`$-dimensional coordinate,
 the edges are the most direct connection between two vertices.
 
 Of course one goal is to make the whole thing look good. You cannot just put
