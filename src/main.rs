@@ -1,81 +1,16 @@
 extern crate regex;
 
+mod datastructures;
+use crate::datastructures::*;
+
 use std::{
-    cell::RefCell,
     collections::HashMap,
     fs::File,
     io::BufRead,
     io::BufReader,
-    rc::Rc
 };
 
 use regex::Regex;
-
-type Value = i32;
-type Weight = i8;
-type Graph<V, E> = Vec<Rc<RefCell<Node<V, E>>>>;
-
-// TODO (GM): Because I'm lazy!
-type DNode = Node<Value, Weight>;
-type DEdge = Edge<Value, Weight>;
-type DGraph = Graph<Value, Weight>;
-type AdMat = Vec<Vec<Weight>>;
-
-const DEFAULT_EDGE_WEIGHT: Weight = 1;
-
-// TODO (GM): Move all that shit into its own file!
-// TODO (GM): Documentation!
-#[derive(Clone)]
-struct Node<V, W> where V: Clone, W: Clone {
-    val: V,
-    // TODO (GM): Do some reading regarding Rc!
-    // TODO (GM): Think about thread-safety!
-    edges: Vec<Rc<Edge<V, W>>>,
-
-    /// Node color. Can be used for different algorithms, e.g. DFS
-    color: i8,
-}
-
-impl<V: std::clone::Clone, W: std::clone::Clone> Node<V, W> {
-    fn new(val: V) -> Rc<RefCell<Node<V, W>>> {
-        Rc::new(RefCell::new(Node {
-            val,
-            edges: Vec::new(),
-            color: 0
-        }))
-    }
-
-    fn get_deg(&self) -> usize {
-        self.edges.len()
-    }
-}
-
-// TODO (GM): Implement UnidirectionalEdge
-/// Represents a bidirectional edge connecting a to b.
-#[derive(Clone)]
-struct Edge<V, W> where V: Clone, W: Clone {
-    a: Rc<RefCell<Node<V, W>>>,
-    b: Rc<RefCell<Node<V, W>>>,
-    weight: W,
-}
-
-impl<V: std::clone::Clone, W: std::clone::Clone> Edge<V, W> {
-    // TODO (GM): Is there an option to provide a default value for weight?
-    fn new(a: &Rc<RefCell<Node<V, W>>>, b: &Rc<RefCell<Node<V, W>>>, weight: W) -> Rc<Edge<V, W>> {
-        let edge = Rc::new(Edge {
-            // TODO (GM): Is cloning really the way?
-            a: a.clone(),
-            b: b.clone(),
-            weight,
-        });
-
-        // TODO (GM): Again, is cloning the way?
-        a.borrow_mut().edges.push(edge.clone());
-        b.borrow_mut().edges.push(edge.clone());
-
-        edge
-    }
-}
 
 // TODO (GM): Test these methods!
 /// Generates a bidirectional path with size n
