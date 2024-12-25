@@ -7,16 +7,6 @@ use crate::admat::*;
 mod generators;
 use crate::generators::*;
 
-fn print_admat(admat: &AdMat) {
-    for row in admat {
-        for x in row {
-            print!("{x}");
-        }
-
-        println!("");
-    }
-}
-
 fn main() {
     println!("Hello world!");
 

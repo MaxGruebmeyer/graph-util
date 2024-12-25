@@ -91,3 +91,13 @@ pub fn graph_to_admat(graph: DGraph) -> AdMat {
 
     admat
 }
+
+pub fn print_admat(admat: &AdMat) {
+    for row in admat {
+        for x in row {
+            print!("{x}");
+        }
+
+        println!("");
+    }
+}
