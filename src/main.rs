@@ -18,6 +18,8 @@ type Graph<V, E> = Vec<GraphNode<V, E>>;
 type DGraphNode = GraphNode<Value, Weight>;
 type DGraph = Graph<Value, Weight>;
 
+type AdMat = Vec<Vec<Weight>>;
+
 const DEFAULT_EDGE_WEIGHT: Weight = 1;
 
 // TODO (GM): Multiple structs for weighted, unweighted, directed, undirected graphs!
@@ -90,10 +92,20 @@ fn generate_circle(n: usize) -> DGraph {
 
 // TODO (GM): Other graph generation functions (complete, hypercube, ...)!
 
-fn read_adjacency_matrix(filename: &str) {
+fn print_admat(admat: &AdMat) {
+    for row in admat {
+        for x in row {
+            print!("{x}");
+        }
+
+        println!("");
+    }
+}
+
+fn read_admat(filename: &str) -> AdMat {
     println!("Reading adjacency matrix from file '{}'", filename);
 
-    let mut mat: Vec<Vec<Weight>> = Vec::new();
+    let mut mat: AdMat = Vec::new();
     let num_regex = Regex::new(r"(\d+)").unwrap();
 
     for line in BufReader::new(File::open(filename)
@@ -109,13 +121,7 @@ fn read_adjacency_matrix(filename: &str) {
             mat.push(cur);
         }
 
-    for row in mat {
-        for x in row {
-            print!("{x}");
-        }
-
-        println!("");
-    }
+    mat
 }
 
 fn main() {
@@ -132,7 +138,7 @@ fn main() {
     // let _c3 = generate_circle(3);
 
     let filename = "admat.txt";
-    read_adjacency_matrix(&filename);
+    let admat = read_admat(&filename);
 
     println!("Goodbye, cruel world!");
 }
