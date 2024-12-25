@@ -14,4 +14,6 @@ fn main() {
     print_admat(&admat);
     print_admat(&graph_to_admat(generate_path(4)));
     print_admat(&graph_to_admat(generate_circle(7)));
+
+    // TODO (GM): Work on visualization!
 }
