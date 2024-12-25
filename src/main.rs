@@ -12,10 +12,11 @@ use regex::Regex;
 
 type Value = i32;
 type Weight = i8;
-type Graph<V, E> = Vec<Node<V, E>>;
+type Graph<V, E> = Vec<Rc<RefCell<Node<V, E>>>>;
 
 // TODO (GM): Because I'm lazy!
-type DGraphNode = Node<Value, Weight>;
+type DNode = Node<Value, Weight>;
+type DEdge = Edge<Value, Weight>;
 type DGraph = Graph<Value, Weight>;
 type AdMat = Vec<Vec<Weight>>;
 
@@ -54,7 +55,7 @@ struct Edge<V, W> where V: Clone, W: Clone {
 
 impl<V: std::clone::Clone, W: std::clone::Clone> Edge<V, W> {
     // TODO (GM): Is there an option to provide a default value for weight?
-    fn new(a: Rc<RefCell<Node<V, W>>>, b: Rc<RefCell<Node<V, W>>>, weight: W) -> Rc<Edge<V, W>> {
+    fn new(a: &Rc<RefCell<Node<V, W>>>, b: &Rc<RefCell<Node<V, W>>>, weight: W) -> Rc<Edge<V, W>> {
         let edge = Rc::new(Edge {
             // TODO (GM): Is cloning really the way?
             a: a.clone(),
@@ -70,43 +71,39 @@ impl<V: std::clone::Clone, W: std::clone::Clone> Edge<V, W> {
     }
 }
 
-// TODO (GM): For now: incoming = outgoing!
+// TODO (GM): Test these methods!
+/// Generates a bidirectional path with size n
+fn generate_path(n: usize) -> DGraph {
+    let mut nodes: DGraph = Vec::new();
+    if n == 0 {
+        return nodes;
+    }
 
-// TODO (GM): Fix!
-// /// Generates a bidirectional path with size n
-// fn generate_path(n: usize) -> DGraph {
-//     let mut nodes: DGraph = Vec::new();
-//     if n == 0 {
-//         return nodes;
-//     }
-// 
-//     nodes.push(DGraphNode::new(0));
-//     for i in 1..n {
-//         let mut cur = DGraphNode::new(i.try_into().unwrap());
-//         let last: &mut DGraphNode = nodes.last_mut().unwrap();
-// 
-//         // TODO (GM): There has to be a better way!
-//         last.next.push((DEFAULT_EDGE_WEIGHT, cur.clone().into()));
-//         cur.next.push((DEFAULT_EDGE_WEIGHT, (*last).clone().into()));
-//     }
-// 
-//     nodes
-// }
-// 
-// /// Generates a bidirectional circle with size n
-// fn generate_circle(n: usize) -> DGraph {
-//     let mut nodes = generate_path(n);
-//     if n < 2 {
-//         return nodes;
-//     }
-// 
-//     let (first, rest) = nodes.split_first_mut().unwrap();
-//     let last = rest.last_mut().unwrap();
-// 
-//     first.next.push((DEFAULT_EDGE_WEIGHT, (*last).clone().into()));
-//     last.next.push((DEFAULT_EDGE_WEIGHT, (*first).clone().into()));
-//     nodes
-// }
+    nodes.push(DNode::new(0));
+    for i in 1..n {
+        let mut cur = DNode::new(i.try_into().unwrap());
+        let last = nodes.last_mut().unwrap();
+
+        DEdge::new(&cur, last, DEFAULT_EDGE_WEIGHT);
+    }
+
+    nodes
+}
+
+/// Generates a bidirectional circle with size n
+fn generate_circle(n: usize) -> DGraph {
+    let mut nodes = generate_path(n);
+    if n < 2 {
+        return nodes;
+    }
+
+    let (first, rest) = nodes.split_first().unwrap();
+    let last = rest.last().unwrap();
+
+    DEdge::new(first, last, DEFAULT_EDGE_WEIGHT);
+
+    nodes
+}
 
 // TODO (GM): Other graph generation functions (complete, hypercube, ...)!
 
