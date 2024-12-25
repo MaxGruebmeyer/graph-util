@@ -100,4 +100,6 @@ pub fn print_admat(admat: &AdMat) {
 
         println!("");
     }
+
+    println!();
 }
