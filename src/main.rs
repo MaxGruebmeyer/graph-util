@@ -1,19 +1,27 @@
+extern crate regex;
+
 use std::{
     convert::TryInto,
+    fs::File,
+    io::BufRead,
+    io::BufReader,
     rc::Rc,
 };
 
-type Values = i32;
-type Weights = i8;
+use regex::Regex;
+
+type Value = i32;
+type Weight = i8;
 type Graph<V, E> = Vec<GraphNode<V, E>>;
 
 // TODO (GM): Because I'm lazy!
-type DGraphNode = GraphNode<Values, Weights>;
-type DGraph = Graph<Values, Weights>;
+type DGraphNode = GraphNode<Value, Weight>;
+type DGraph = Graph<Value, Weight>;
 
-const DEFAULT_EDGE_WEIGHT: Weights = 1;
+const DEFAULT_EDGE_WEIGHT: Weight = 1;
 
 // TODO (GM): Multiple structs for weighted, unweighted, directed, undirected graphs!
+// TODO (GM): Probably have to revisit this one!
 /// Struct representing a graph node with value of type V and
 ///  edge weight of type E.
 #[derive(Clone)]
@@ -82,17 +90,49 @@ fn generate_circle(n: usize) -> DGraph {
 
 // TODO (GM): Other graph generation functions (complete, hypercube, ...)!
 
+fn read_adjacency_matrix(filename: &str) {
+    println!("Reading adjacency matrix from file '{}'", filename);
+
+    let mut mat: Vec<Vec<Weight>> = Vec::new();
+    let num_regex = Regex::new(r"(\d+)").unwrap();
+
+    for line in BufReader::new(File::open(filename)
+        .expect("Could not open file!"))
+        .lines()
+        .map(|l| l.expect("Could not read line!")) {
+            let mut cur: Vec<Weight> = Vec::new();
+            for (_, [num]) in num_regex.captures_iter(&line)
+                 .map(|c| c.extract()) {
+                     cur.push(num.parse::<Weight>().unwrap());
+                 }
+
+            mat.push(cur);
+        }
+
+    for row in mat {
+        for x in row {
+            print!("{x}");
+        }
+
+        println!("");
+    }
+}
+
 fn main() {
     println!("Hello world!");
 
     // TODO (GM): Column-oriented or row-oriented?
     // TODO (GM): Also allow 1d-adj_matrix?
     // TODO (GM): Structs for nodes + methods to build adjacency-matrix from it!
-    let adj_matrix: Vec<Vec<Weights>> = Vec::new();
+    let adj_matrix: Vec<Vec<Weight>> = Vec::new();
 
     // TODO (GM): Visualize these!
-    let _p5 = generate_path(5);
-    let _c3 = generate_circle(3);
+    // TODO (GM): Fix them + unit tests!
+    // let _p5 = generate_path(5);
+    // let _c3 = generate_circle(3);
+
+    let filename = "admat.txt";
+    read_adjacency_matrix(&filename);
 
     println!("Goodbye, cruel world!");
 }
