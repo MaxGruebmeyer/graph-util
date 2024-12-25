@@ -1,6 +1,6 @@
 use crate::datastructures::*;
 
-// TODO (GM): Test these methods!
+// TODO (GM): Unit test these methods!
 /// Generates a bidirectional path with size n
 pub fn generate_path(n: usize) -> DGraph {
     let mut nodes: DGraph = Vec::new();
@@ -14,6 +14,7 @@ pub fn generate_path(n: usize) -> DGraph {
         let last = nodes.last_mut().unwrap();
 
         DEdge::new(&cur, last, DEFAULT_EDGE_WEIGHT);
+        nodes.push(cur);
     }
 
     nodes
@@ -30,7 +31,6 @@ pub fn generate_circle(n: usize) -> DGraph {
     let last = rest.last().unwrap();
 
     DEdge::new(first, last, DEFAULT_EDGE_WEIGHT);
-
     nodes
 }
 

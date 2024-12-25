@@ -11,9 +11,6 @@ fn main() {
     println!("Hello world!");
 
     // TODO (GM): Visualize these!
-    // TODO (GM): Fix them + unit tests!
-    // let _p5 = generate_path(5);
-    // let _c3 = generate_circle(3);
 
     let filename = "admat.txt";
     let admat = read_admat(&filename);
@@ -21,6 +18,15 @@ fn main() {
     print_admat(&admat);
     println!();
     print_admat(&graph_to_admat(admat_to_graph(&admat)));
+    println!();
+
+    let p5 = generate_path(5);
+    print_admat(&graph_to_admat(p5));
+    println!();
+
+    let c3 = generate_circle(3);
+    print_admat(&graph_to_admat(c3));
+    println!();
 
     println!("Goodbye, cruel world!");
 }
