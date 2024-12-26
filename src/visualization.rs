@@ -12,6 +12,12 @@ const K_E: f64 = 1.0;
 /// Stability constant for calculation of F_s
 const K_S: f64 = 1.0;
 
+/// Tolerance that defines once a graph system is considered stable
+const DRIFT_TOL: f64 = 10e-10;
+
+/// Max amount of iterations until the calculation is aborted
+const MAX_DRIFT_ITERATIONS: usize = 250;
+
 #[derive(Clone)]
 struct Position {
     x: f64,
@@ -214,6 +220,16 @@ fn init_pos_map<V: Clone, E: Clone>(graph: &Graph<V, E>) -> HashMap<V, Position>
     pos_lookup
 }
 
+fn calc_til_stable<V: Clone + Hash + Eq>(render_info: &mut RenderInfo<V>) {
+    for _ in 0..MAX_DRIFT_ITERATIONS {
+        if update_positions(render_info) < DRIFT_TOL {
+            return;
+        }
+    }
+
+    panic!("Could not calculate the system in {MAX_DRIFT_ITERATIONS} iterations!");
+}
+
 // TODO (GM): Documentation!
 pub fn visualize<V: Clone, E: Clone>(graph: &Graph<V, E>) where V: Eq, V: Hash {
     let mut render_info = RenderInfo {
@@ -222,15 +238,5 @@ pub fn visualize<V: Clone, E: Clone>(graph: &Graph<V, E>) where V: Eq, V: Hash {
         rod_info: init_rod_map(&graph),
     };
 
-    // That should be small enough
-    let tol = 10e-10;
-    for _ in 0..250 {
-        let diff = update_positions(&mut render_info);
-        if diff < tol {
-            println!("Diff {diff} is smaller than tolerance {tol}!");
-            break;
-        }
-
-        println!("New difference is {diff}");
-    }
+    calc_til_stable(&mut render_info);
 }
