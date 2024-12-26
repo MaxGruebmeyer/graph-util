@@ -89,7 +89,16 @@ fn rod_modifier(l: f64) -> f64 {
     l
 }
 
-fn update_positions<V: Clone + Hash + Eq>(render_info: &mut RenderInfo<V>) {
+fn get_diff<V: Hash + Eq>(map_a: &HashMap<V, Position>, map_b: &HashMap<V, Position>) -> f64 {
+    let mut norm: f64 = 0.0;
+    for (k,v) in map_a {
+        norm += get_2_norm(v, map_b.get(k).unwrap());
+    }
+
+    norm
+}
+
+fn update_positions<V: Clone + Hash + Eq>(render_info: &mut RenderInfo<V>) -> f64 {
     let mut updated_pos = render_info.pos_info.clone();
 
     // TODO (GM): Does this work?
@@ -137,7 +146,10 @@ fn update_positions<V: Clone + Hash + Eq>(render_info: &mut RenderInfo<V>) {
         updated_pos.get_mut(b).map(|val| { *val = applied_mech_force_b });
     }
 
+    let diff = get_diff(&updated_pos, &render_info.pos_info);
     render_info.pos_info = updated_pos;
+
+    diff
 }
 
 /// HashMap to map values to rod lengths.
