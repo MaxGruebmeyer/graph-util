@@ -110,7 +110,6 @@ fn get_diff<V: Hash + Eq>(map_a: &HashMap<V, Position>, map_b: &HashMap<V, Posit
 fn update_positions<V: Clone + Hash + Eq>(render_info: &mut RenderInfo<V>) -> f64 {
     let mut updated_pos = render_info.pos_info.clone();
 
-    // TODO (GM): Does this work?
     for (k1, pos1) in render_info.pos_info.iter() {
         for (k2, pos2) in render_info.pos_info.iter() {
             if k1 == k2 {
@@ -131,10 +130,10 @@ fn update_positions<V: Clone + Hash + Eq>(render_info: &mut RenderInfo<V>) -> f6
         let a: &V = &edge.a;
         let b: &V = &edge.b;
 
-        // TODO (GM): Remove?
-        // let old_pos_a = render_info.pos_info.get(a).unwrap();
-        // let old_pos_b = render_info.pos_info.get(b).unwrap();
-        // let old_dist = get_2_norm(old_pos_b, old_pos_a);
+        // Always use the rod length as the old distance.
+        // We currently DO NOT support stretching rods.
+        // Furthermore it's not guaranteed, that the old distance is actually
+        //  equal to the rod length -> TODO (GM): Fix that?
         let old_dist = *rod_len;
 
         let new_pos_a = updated_pos.get(a).unwrap();
@@ -142,12 +141,11 @@ fn update_positions<V: Clone + Hash + Eq>(render_info: &mut RenderInfo<V>) -> f6
         let new_dist = get_2_norm(new_pos_b, new_pos_a);
         let unit_vec = get_unit_vector(new_pos_a, new_pos_b);
 
-        let mut mech_force = calc_mechanical_force(old_dist, new_dist, &unit_vec);
-
         // Only half the force needs to be applied to both parties
-        mech_force = mul(&mech_force, 0.5);
+        let mech_force = mul(
+            &calc_mechanical_force(old_dist, new_dist, &unit_vec),
+            0.5);
 
-        // TODO (GM): Does this work?
         updated_pos.get_mut(a).map(|val| { *val = add_vec(val, &mech_force ) });
         updated_pos.get_mut(b).map(|val| { *val = sub_vec(val, &mech_force ) });
     }
