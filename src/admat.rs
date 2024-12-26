@@ -60,7 +60,7 @@ pub fn admat_to_graph(admat: &AdMat) -> DGraph {
 }
 
 // TODO (GM): Documentation!
-pub fn graph_to_admat(graph: DGraph) -> AdMat {
+pub fn graph_to_admat(graph: &DGraph) -> AdMat {
     let mut admat: AdMat = vec![vec![0; graph.len()]; graph.len()];
 
     // HashMap to map values to positions.
@@ -68,9 +68,10 @@ pub fn graph_to_admat(graph: DGraph) -> AdMat {
     let mut pos_lookup: HashMap<Value, usize> = HashMap::with_capacity(graph.len());
 
     for i in 0..graph.len() {
-        match pos_lookup.insert(graph[i].borrow().val, i) {
+        let key = graph[i].borrow().val;
+        match pos_lookup.insert(key, i) {
             None => {},
-            Some(x) => { panic!("Node values were not unique, {x} occurred multiple times!"); },
+            Some(_) => { panic!("Node values were not unique, {key} occurred multiple times!"); },
         }
     }
 
