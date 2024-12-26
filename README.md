@@ -75,3 +75,8 @@ What about planar (sub-)graphs?
 - Clique via Bron-KerboschA
 - Cycle-detection algorithm
 - Steiner-trees and Steiner-forests!
+
+# General TODOs
+
+- Clean up the whole code mess!
+- Create CI
