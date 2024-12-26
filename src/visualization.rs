@@ -197,9 +197,13 @@ fn init_charge_map<V: Clone, E: Clone>(graph: &Graph<V, E>) -> HashMap<V, f64> w
 /// Assumes values are unique among nodes.
 fn init_pos_map<V: Clone, E: Clone>(graph: &Graph<V, E>) -> HashMap<V, Position> where V: Eq, V: Hash {
     let mut pos_lookup: HashMap<V, Position> = HashMap::with_capacity(graph.len());
-    for node in graph {
-        let key: V = node.borrow().val.clone();
-        let pos = Position { x: 0.0, y: 0.0, z: 0.0 };
+    for i in 0..graph.len() {
+        let key: V = graph[i].borrow().val.clone();
+
+        // Use i as iterator because there will be problems if two nodes start
+        //  at the same position because unit vector cannot be created
+        //  (division by zero).
+        let pos = Position { x: i as f64, y: i as f64, z: i as f64 };
 
         match pos_lookup.insert(key, pos) {
             None => {},
