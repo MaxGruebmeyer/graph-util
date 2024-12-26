@@ -11,4 +11,4 @@ regex = "1.11.1"
 
 [[bin]]
 name = "main"
-path = "main.rs"
+path = "src/main.rs"
