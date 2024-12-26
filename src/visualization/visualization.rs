@@ -14,4 +14,9 @@ pub fn visualize<V: Clone, E: Clone>(graph: &Graph<V, E>) where V: Eq, V: Hash {
     };
 
     calc_til_stable(&mut render_info);
+
+    println!("Final coordiantes are:");
+    for (_, v) in render_info.pos_info {
+        println!("x = {}, y = {}, z = {}", v.x, v.y, v.z);
+    }
 }
