@@ -43,8 +43,13 @@ fn get_2_norm(pos_a: &Position, pos_b: &Position) -> f64 {
     get_squared_2_norm(pos_a, pos_b).sqrt()
 }
 
+/// Adds both vectors
+fn add_vec(a: &Position, b: &Position) -> Position {
+    Position { x: (a.x + b.x), y: (a.y + b.y), z: (a.z + b.z) }
+}
+
 /// Subtracts the second vector from the first.
-fn sub(minuend: &Position, subtrahend: &Position) -> Position {
+fn sub_vec(minuend: &Position, subtrahend: &Position) -> Position {
     Position {
         x: (minuend.x - subtrahend.x),
         y: (minuend.y - subtrahend.y),
@@ -68,7 +73,7 @@ fn get_unit_vector(pos_a: &Position, pos_b: &Position) -> Position {
         panic!("Cannot create unit vector. Norm is 0!");
     }
 
-    mul(&sub(&pos_b, &pos_a), 1.0 / norm)
+    mul(&sub_vec(&pos_b, &pos_a), 1.0 / norm)
 }
 
 /// Calculates the electrical force between two vertices a and b
@@ -82,7 +87,7 @@ fn calc_electrical_force(pos_a: &Position, pos_b: &Position,
 ///  by using the old and new dist as well as the unit vector between them.
 fn calc_mechanical_force(old_dist: f64, new_dist: f64,
     unit_vector: &Position) -> Position {
-    mul(unit_vector, -K_S * (new_dist - old_dist))
+    mul(unit_vector, K_S * (new_dist - old_dist))
 }
 
 fn charge_modifier(c: f64) -> f64 {
@@ -116,7 +121,7 @@ fn update_positions<V: Clone + Hash + Eq>(render_info: &mut RenderInfo<V>) -> f6
             let charge2: &f64 = render_info.charge_info.get(k2).unwrap();
 
             let applied_e_force = calc_electrical_force(pos1, pos2, *charge1, *charge2);
-            let updated = sub(updated_pos.get(k1).unwrap(), &applied_e_force);
+            let updated = sub_vec(updated_pos.get(k1).unwrap(), &applied_e_force);
 
             updated_pos.get_mut(k1).map(|val| { *val = updated; });
         }
@@ -134,20 +139,17 @@ fn update_positions<V: Clone + Hash + Eq>(render_info: &mut RenderInfo<V>) -> f6
 
         let new_pos_a = updated_pos.get(a).unwrap();
         let new_pos_b = updated_pos.get(b).unwrap();
-
         let new_dist = get_2_norm(new_pos_b, new_pos_a);
-
-        // TODO (GM): Is this correct?
         let unit_vec = get_unit_vector(new_pos_a, new_pos_b);
-        let applied_mech_force_a = calc_mechanical_force(old_dist,
-            new_dist,
-            &unit_vec);
 
-        let applied_mech_force_b = mul(&applied_mech_force_a, -1.0);
+        let mut mech_force = calc_mechanical_force(old_dist, new_dist, &unit_vec);
+
+        // Only half the force needs to be applied to both parties
+        mech_force = mul(&mech_force, 0.5);
 
         // TODO (GM): Does this work?
-        updated_pos.get_mut(a).map(|val| { *val = applied_mech_force_a });
-        updated_pos.get_mut(b).map(|val| { *val = applied_mech_force_b });
+        updated_pos.get_mut(a).map(|val| { *val = add_vec(val, &mech_force ) });
+        updated_pos.get_mut(b).map(|val| { *val = sub_vec(val, &mech_force ) });
     }
 
     let diff = get_diff(&updated_pos, &render_info.pos_info);
