@@ -12,6 +12,7 @@ const K_E: f64 = 1.0;
 /// Stability constant for calculation of F_s
 const K_S: f64 = 1.0;
 
+#[derive(Clone)]
 struct Position {
     x: f64,
     y: f64,
@@ -22,6 +23,12 @@ struct Position {
 struct EdgeId<V> where V: Clone, V: Eq, V: Hash {
     a: V,
     b: V,
+}
+
+struct RenderInfo<V> where V: Clone, V: Eq, V: Hash {
+    pos_info: HashMap<V, Position>,
+    charge_info: HashMap<V, f64>,
+    rod_info: HashMap<EdgeId<V>, f64>,
 }
 
 /// Get's the squared euclidean distance between a and b, e.g. (||b - a||_2)^2
@@ -80,6 +87,30 @@ fn charge_modifier(c: f64) -> f64 {
 
 fn len_modifier(l: f64) -> f64 {
     l
+}
+
+fn calculate<V: Clone + Hash + Eq, E: Clone>(graph: &Graph<V, E>,
+    render_info: &RenderInfo<V>) {
+    let mut updates_pos = render_info.pos_info.clone();
+
+    // TODO (GM): Does this work?
+    for (k1, pos1) in render_info.pos_info.iter() {
+        for (k2, pos2) in render_info.pos_info.iter() {
+            if k1 == k2 {
+                continue;
+            }
+
+            let charge1: &f64 = render_info.charge_info.get(k1).unwrap();
+            let charge2: &f64 = render_info.charge_info.get(k2).unwrap();
+
+            let applied_e_force = calculate_electrical_force(pos1, pos2, *charge1, *charge2);
+            let updated = sub(updates_pos.get(k1).unwrap(), &applied_e_force);
+
+            updates_pos.get_mut(k1).map(|val| { *val = updated; });
+        }
+    }
+
+    panic!("Not implemented!");
 }
 
 /// HashMap to map values to rod lengths.
