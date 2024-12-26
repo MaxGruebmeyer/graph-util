@@ -19,4 +19,6 @@ pub fn visualize<V: Clone, E: Clone>(graph: &Graph<V, E>) where V: Eq, V: Hash {
     for (_, v) in render_info.pos_info {
         println!("x = {}, y = {}, z = {}", v.x, v.y, v.z);
     }
+
+    // TODO (GM): Add actual visualization!
 }
