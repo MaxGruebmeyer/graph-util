@@ -1,5 +1,5 @@
+// TODO (GM): Can we merge multiple files into one module?
 mod datastructures;
-use crate::datastructures::*;
 
 mod admat;
 use crate::admat::*;
@@ -9,6 +9,8 @@ use crate::generators::*;
 
 mod visualization;
 use crate::visualization::*;
+
+mod linalg;
 
 fn main() {
     let filename = "admat.txt";

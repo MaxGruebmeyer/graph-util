@@ -1,4 +1,7 @@
 use crate::datastructures::*;
+use crate::linalg::structs::*;
+use crate::linalg::vectorarithmetic::*;
+use crate::linalg::physics::*;
 
 use std::{
     cmp::min,
@@ -6,24 +9,11 @@ use std::{
     hash::Hash,
 };
 
-/// Electrical constant used in the calculation of F_e
-const K_E: f64 = 1.0;
-
-/// Stability constant for calculation of F_s
-const K_S: f64 = 1.0;
-
 /// Tolerance that defines once a graph system is considered stable
 const DRIFT_TOL: f64 = 10e-10;
 
 /// Max amount of iterations until the calculation is aborted
 const MAX_DRIFT_ITERATIONS: usize = 250;
-
-#[derive(Clone)]
-struct Position {
-    x: f64,
-    y: f64,
-    z: f64,
-}
 
 #[derive(Clone, Hash, Eq, PartialEq)]
 struct EdgeId<V> where V: Clone, V: Eq, V: Hash {
@@ -32,68 +22,9 @@ struct EdgeId<V> where V: Clone, V: Eq, V: Hash {
 }
 
 struct RenderInfo<V> where V: Clone, V: Eq, V: Hash {
-    pos_info: HashMap<V, Position>,
+    pos_info: HashMap<V, Pos3D>,
     charge_info: HashMap<V, f64>,
     rod_info: HashMap<EdgeId<V>, f64>,
-}
-
-/// Get's the squared euclidean dist between a and b, e.g. (||b - a||_2)^2
-fn get_squared_2_norm(pos_a: &Position, pos_b: &Position) -> f64 {
-    (pos_b.x - pos_a.x).powf(2.0)
-     + (pos_b.y - pos_a.y).powf(2.0)
-     + (pos_b.z - pos_a.z).powf(2.0)
-}
-
-/// Get's the euclidean dist between a and b, e.g. ||b - a||_2
-fn get_2_norm(pos_a: &Position, pos_b: &Position) -> f64 {
-    get_squared_2_norm(pos_a, pos_b).sqrt()
-}
-
-/// Adds both vectors
-fn add_vec(a: &Position, b: &Position) -> Position {
-    Position { x: (a.x + b.x), y: (a.y + b.y), z: (a.z + b.z) }
-}
-
-/// Subtracts the second vector from the first.
-fn sub_vec(minuend: &Position, subtrahend: &Position) -> Position {
-    Position {
-        x: (minuend.x - subtrahend.x),
-        y: (minuend.y - subtrahend.y),
-        z: (minuend.z - subtrahend.z),
-    }
-}
-
-/// Multiplies a vector with a scalar
-fn mul(vec: &Position, mul: f64) -> Position {
-    Position {
-        x: vec.x * mul,
-        y: vec.y * mul,
-        z: vec.z * mul,
-    }
-}
-
-/// Get's the unit vector of a and b, e.g. (b - a)/||b - a||_2
-fn get_unit_vector(pos_a: &Position, pos_b: &Position) -> Position {
-    let norm = get_2_norm(pos_a, pos_b);
-    if norm == 0.0 {
-        panic!("Cannot create unit vector. Norm is 0!");
-    }
-
-    mul(&sub_vec(&pos_b, &pos_a), 1.0 / norm)
-}
-
-/// Calculates the electrical force between two vertices a and b
-fn calc_electrical_force(pos_a: &Position, pos_b: &Position,
-    charge_a: f64, charge_b: f64) -> Position {
-    let scalar: f64 = K_E * ((charge_a * charge_b) / get_squared_2_norm(pos_a, pos_b));
-    mul(&get_unit_vector(pos_a, pos_b), scalar)
-}
-
-/// Calculates the mechanical pullback force between two vertices a and b
-///  by using the old and new dist as well as the unit vector between them.
-fn calc_mechanical_force(old_dist: f64, new_dist: f64,
-    unit_vector: &Position) -> Position {
-    mul(unit_vector, K_S * (new_dist - old_dist))
 }
 
 fn charge_modifier(c: f64) -> f64 {
@@ -104,7 +35,7 @@ fn rod_modifier(l: f64) -> f64 {
     l
 }
 
-fn get_diff<V: Hash + Eq>(map_a: &HashMap<V, Position>, map_b: &HashMap<V, Position>) -> f64 {
+fn get_diff<V: Hash + Eq>(map_a: &HashMap<V, Pos3D>, map_b: &HashMap<V, Pos3D>) -> f64 {
     let mut norm: f64 = 0.0;
     for (k,v) in map_a {
         norm += get_2_norm(v, map_b.get(k).unwrap());
@@ -201,15 +132,15 @@ fn init_charge_map<V: Clone, E: Clone>(graph: &Graph<V, E>) -> HashMap<V, f64> w
 
 /// Initializes HashMap to map values to positions.
 /// Assumes values are unique among nodes.
-fn init_pos_map<V: Clone, E: Clone>(graph: &Graph<V, E>) -> HashMap<V, Position> where V: Eq, V: Hash {
-    let mut pos_lookup: HashMap<V, Position> = HashMap::with_capacity(graph.len());
+fn init_pos_map<V: Clone, E: Clone>(graph: &Graph<V, E>) -> HashMap<V, Pos3D> where V: Eq, V: Hash {
+    let mut pos_lookup: HashMap<V, Pos3D> = HashMap::with_capacity(graph.len());
     for i in 0..graph.len() {
         let key: V = graph[i].borrow().val.clone();
 
         // Use i as iterator because there will be problems if two nodes start
         //  at the same position because unit vector cannot be created
         //  (division by zero).
-        let pos = Position { x: i as f64, y: i as f64, z: i as f64 };
+        let pos = Pos3D { x: i as f64, y: i as f64, z: i as f64 };
 
         match pos_lookup.insert(key, pos) {
             None => {},
