@@ -23,7 +23,8 @@ fn get_diff<V: Hash + Eq>(map_a: &HashMap<V, Pos3D>, map_b: &HashMap<V, Pos3D>) 
     norm
 }
 
-fn update_positions<V: Clone + Hash + Eq>(render_info: &mut RenderInfo<V>) -> f64 {
+fn apply_e_forces<V: Clone + Hash + Eq>(render_info: &RenderInfo<V>)
+-> HashMap<V, Pos3D> {
     let mut updated_pos = render_info.pos_info.clone();
 
     for (k1, pos1) in render_info.pos_info.iter() {
@@ -42,6 +43,11 @@ fn update_positions<V: Clone + Hash + Eq>(render_info: &mut RenderInfo<V>) -> f6
         }
     }
 
+    updated_pos
+}
+
+fn apply_mech_forces<V: Clone + Hash + Eq>(render_info: &RenderInfo<V>,
+    updated_pos: &mut HashMap<V, Pos3D>) {
     for (edge, rod_len) in render_info.rod_info.iter() {
         let a: &V = &edge.a;
         let b: &V = &edge.b;
@@ -65,6 +71,13 @@ fn update_positions<V: Clone + Hash + Eq>(render_info: &mut RenderInfo<V>) -> f6
         updated_pos.get_mut(a).map(|val| { *val = add_vec(val, &mech_force ) });
         updated_pos.get_mut(b).map(|val| { *val = sub_vec(val, &mech_force ) });
     }
+}
+
+fn update_positions<V: Clone + Hash + Eq>(render_info: &mut RenderInfo<V>) -> f64 {
+    let mut updated_pos = apply_e_forces(render_info);
+
+    // TODO (GM): Use return type instead of mutable borrow?
+    apply_mech_forces(render_info, &mut updated_pos);
 
     let diff = get_diff(&updated_pos, &render_info.pos_info);
     render_info.pos_info = updated_pos;
