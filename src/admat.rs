@@ -65,7 +65,7 @@ pub fn graph_to_admat(graph: DGraph) -> AdMat {
 
     // HashMap to map values to positions.
     // Assumes values are unique among nodes.
-    let mut pos_lookup: HashMap<Value, usize> = HashMap::new();
+    let mut pos_lookup: HashMap<Value, usize> = HashMap::with_capacity(graph.len());
 
     for i in 0..graph.len() {
         match pos_lookup.insert(graph[i].borrow().val, i) {
