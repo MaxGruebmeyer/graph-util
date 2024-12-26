@@ -13,7 +13,7 @@ use crate::visualization::*;
 mod linalg;
 
 fn main() {
-    let filename = "admat.txt";
+    let filename = "../src/admat.txt";
     let admat = read_admat(&filename);
     let p4 = generate_path(4);
     let c7 = generate_circle(7);
