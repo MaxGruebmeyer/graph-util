@@ -85,7 +85,7 @@ fn charge_modifier(c: f64) -> f64 {
     c
 }
 
-fn len_modifier(l: f64) -> f64 {
+fn rod_modifier(l: f64) -> f64 {
     l
 }
 
@@ -109,7 +109,7 @@ fn update_positions<V: Clone + Hash + Eq>(render_info: &mut RenderInfo<V>) {
         }
     }
 
-    for (edge, len) in render_info.rod_info.iter() {
+    for (edge, rod_len) in render_info.rod_info.iter() {
         let a: &V = &edge.a;
         let b: &V = &edge.b;
 
@@ -117,7 +117,7 @@ fn update_positions<V: Clone + Hash + Eq>(render_info: &mut RenderInfo<V>) {
         // let old_pos_a = render_info.pos_info.get(a).unwrap();
         // let old_pos_b = render_info.pos_info.get(b).unwrap();
         // let old_dist = get_2_norm(old_pos_b, old_pos_a);
-        let old_dist = *len;
+        let old_dist = *rod_len;
 
         let new_pos_a = updated_pos.get(a).unwrap();
         let new_pos_b = updated_pos.get(b).unwrap();
@@ -143,21 +143,21 @@ fn update_positions<V: Clone + Hash + Eq>(render_info: &mut RenderInfo<V>) {
 /// HashMap to map values to rod lengths.
 /// Assumes values are unique among nodes which maps to the edge identifier.
 /// Assumes for any two vertices a and b there is at most one edge between them.
-fn init_len_map<V: Clone, E: Clone>(graph: &Graph<V, E>) -> HashMap<EdgeId<V>, f64> where V: Eq, V: Hash {
-    let mut len_map: HashMap<EdgeId<V>, f64> = HashMap::with_capacity(graph.len());
+fn init_rod_map<V: Clone, E: Clone>(graph: &Graph<V, E>) -> HashMap<EdgeId<V>, f64> where V: Eq, V: Hash {
+    let mut rod_map: HashMap<EdgeId<V>, f64> = HashMap::with_capacity(graph.len());
     for node in graph {
         for edge in &node.borrow().edges {
             let a = edge.a.borrow();
             let b = edge.b.borrow();
 
             let edge_id = EdgeId { a: a.val.clone(), b: b.val.clone() };
-            let val = len_modifier(min(a.get_deg(), b.get_deg()) as f64);
+            let val = rod_modifier(min(a.get_deg(), b.get_deg()) as f64);
 
-            len_map.insert(edge_id, val);
+            rod_map.insert(edge_id, val);
         }
     }
 
-    len_map
+    rod_map
 }
 
 /// Initializes HashMap to map values to charges.
@@ -199,7 +199,7 @@ pub fn visualize<V: Clone, E: Clone>(graph: &Graph<V, E>) where V: Eq, V: Hash {
     let mut render_info = RenderInfo {
         pos_info: init_pos_map(&graph),
         charge_info: init_charge_map(&graph),
-        rod_info: init_len_map(&graph),
+        rod_info: init_rod_map(&graph),
     };
 
     // TODO (GM): Re-apply this until it converges?
