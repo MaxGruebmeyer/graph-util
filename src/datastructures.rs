@@ -28,7 +28,7 @@ pub struct Node<V, W> where V: Clone, W: Clone {
     pub color: i8,
 }
 
-impl<V: std::clone::Clone, W: std::clone::Clone> Node<V, W> {
+impl<V: Clone, W: Clone> Node<V, W> {
     pub fn new(val: V) -> Rc<RefCell<Node<V, W>>> {
         Rc::new(RefCell::new(Node {
             val,
@@ -51,7 +51,7 @@ pub struct Edge<V, W> where V: Clone, W: Clone {
     pub weight: W,
 }
 
-impl<V: std::clone::Clone, W: std::clone::Clone> Edge<V, W> {
+impl<V: Clone, W: Clone> Edge<V, W> {
     // TODO (GM): Is there an option to provide a default value for weight?
     pub fn new(a: &Rc<RefCell<Node<V, W>>>, b: &Rc<RefCell<Node<V, W>>>, weight: W) -> Rc<Edge<V, W>> {
         let edge = Rc::new(Edge {
