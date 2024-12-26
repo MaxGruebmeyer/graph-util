@@ -15,12 +15,15 @@ mod linalg;
 fn main() {
     let filename = "../src/resources/admat.txt";
     let admat = read_admat(&filename);
-    let p4 = generate_path(4);
-    let c7 = generate_circle(7);
+    let path = generate_path(14);
+    let circle = generate_circle(21);
 
     print_admat(&admat);
-    print_admat(&graph_to_admat(&p4));
-    print_admat(&graph_to_admat(&c7));
+    print_admat(&graph_to_admat(&path));
+    print_admat(&graph_to_admat(&circle));
 
-    visualize(&p4);
+    // TODO (GM): Fix this for circles and general graphs!
+    // visualize(&circle);
+
+    visualize(&path);
 }

@@ -9,7 +9,7 @@ use std::{
 };
 
 /// Tolerance that defines once a graph system is considered stable
-const DRIFT_TOL: f64 = 10e-10;
+const DRIFT_TOL: f64 = 10e-5;
 
 /// Max amount of iterations until the calculation is aborted
 const MAX_DRIFT_ITERATIONS: usize = 250;
@@ -85,12 +85,18 @@ fn update_positions<V: Clone + Hash + Eq>(render_info: &mut RenderInfo<V>) -> f6
     diff
 }
 
+// TODO (GM): Make this converge way faster and work for general graphs
+//  -> e.g. use lagrange multiplicators, gradient descent or some other shit
 pub fn calc_til_stable<V: Clone + Hash + Eq>(render_info: &mut RenderInfo<V>) {
+    let mut diff = 0.0;
     for _ in 0..MAX_DRIFT_ITERATIONS {
-        if update_positions(render_info) < DRIFT_TOL {
+        diff = update_positions(render_info);
+        println!("Diff: {diff}");
+
+        if diff < DRIFT_TOL {
             return;
         }
     }
 
-    panic!("Could not calculate the system in {MAX_DRIFT_ITERATIONS} iterations!");
+    panic!("Could not calculate the system in {MAX_DRIFT_ITERATIONS} iterations! Last diff was {diff}.");
 }
