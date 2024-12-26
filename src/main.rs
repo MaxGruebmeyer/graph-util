@@ -8,7 +8,7 @@ mod generators;
 use crate::generators::*;
 
 mod visualization;
-use crate::visualization::*;
+use crate::visualization::visualization::*;
 
 mod linalg;
 
