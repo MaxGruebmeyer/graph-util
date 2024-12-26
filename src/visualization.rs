@@ -63,8 +63,12 @@ fn mul(vec: &Position, mul: f64) -> Position {
 
 /// Get's the unit vector of a and b, e.g. (b - a)/||b - a||_2
 fn get_unit_vector(pos_a: &Position, pos_b: &Position) -> Position {
-    let inv_norm: f64 = 1.0 / get_2_norm(pos_a, pos_b);
-    mul(&sub(&pos_b, &pos_a), inv_norm)
+    let norm = get_2_norm(pos_a, pos_b);
+    if norm == 0.0 {
+        panic!("Cannot create unit vector. Norm is 0!");
+    }
+
+    mul(&sub(&pos_b, &pos_a), 1.0 / norm)
 }
 
 /// Calculates the electrical force between two vertices a and b
@@ -215,5 +219,8 @@ pub fn visualize<V: Clone, E: Clone>(graph: &Graph<V, E>) where V: Eq, V: Hash {
     };
 
     // TODO (GM): Re-apply this until it converges?
-    update_positions(&mut render_info);
+    for _ in 0..5 {
+        let diff = update_positions(&mut render_info);
+        println!("New difference is {diff}");
+    }
 }
