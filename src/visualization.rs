@@ -31,14 +31,14 @@ struct RenderInfo<V> where V: Clone, V: Eq, V: Hash {
     rod_info: HashMap<EdgeId<V>, f64>,
 }
 
-/// Get's the squared euclidean distance between a and b, e.g. (||b - a||_2)^2
+/// Get's the squared euclidean dist between a and b, e.g. (||b - a||_2)^2
 fn get_squared_2_norm(pos_a: &Position, pos_b: &Position) -> f64 {
     (pos_b.x - pos_a.x).powf(2.0)
      + (pos_b.y - pos_a.y).powf(2.0)
      + (pos_b.z - pos_a.z).powf(2.0)
 }
 
-/// Get's the euclidean distance between a and b, e.g. ||b - a||_2
+/// Get's the euclidean dist between a and b, e.g. ||b - a||_2
 fn get_2_norm(pos_a: &Position, pos_b: &Position) -> f64 {
     get_squared_2_norm(pos_a, pos_b).sqrt()
 }
@@ -68,17 +68,17 @@ fn get_unit_vector(pos_a: &Position, pos_b: &Position) -> Position {
 }
 
 /// Calculates the electrical force between two vertices a and b
-fn calculate_electrical_force(pos_a: &Position, pos_b: &Position,
+fn calc_electrical_force(pos_a: &Position, pos_b: &Position,
     charge_a: f64, charge_b: f64) -> Position {
     let scalar: f64 = K_E * ((charge_a * charge_b) / get_squared_2_norm(pos_a, pos_b));
     mul(&get_unit_vector(pos_a, pos_b), scalar)
 }
 
 /// Calculates the mechanical pullback force between two vertices a and b
-///  by using the old and new distance as well as the unit vector between them.
-fn calculate_mechanical_force(old_distance: f64, new_distance: f64,
+///  by using the old and new dist as well as the unit vector between them.
+fn calc_mechanical_force(old_dist: f64, new_dist: f64,
     unit_vector: &Position) -> Position {
-    mul(unit_vector, -K_S * (new_distance - old_distance))
+    mul(unit_vector, -K_S * (new_dist - old_dist))
 }
 
 fn charge_modifier(c: f64) -> f64 {
@@ -89,9 +89,8 @@ fn len_modifier(l: f64) -> f64 {
     l
 }
 
-fn calculate<V: Clone + Hash + Eq, E: Clone>(graph: &Graph<V, E>,
-    render_info: &RenderInfo<V>) {
-    let mut updates_pos = render_info.pos_info.clone();
+fn update_positions<V: Clone + Hash + Eq>(render_info: &mut RenderInfo<V>) {
+    let mut updated_pos = render_info.pos_info.clone();
 
     // TODO (GM): Does this work?
     for (k1, pos1) in render_info.pos_info.iter() {
@@ -103,14 +102,42 @@ fn calculate<V: Clone + Hash + Eq, E: Clone>(graph: &Graph<V, E>,
             let charge1: &f64 = render_info.charge_info.get(k1).unwrap();
             let charge2: &f64 = render_info.charge_info.get(k2).unwrap();
 
-            let applied_e_force = calculate_electrical_force(pos1, pos2, *charge1, *charge2);
-            let updated = sub(updates_pos.get(k1).unwrap(), &applied_e_force);
+            let applied_e_force = calc_electrical_force(pos1, pos2, *charge1, *charge2);
+            let updated = sub(updated_pos.get(k1).unwrap(), &applied_e_force);
 
-            updates_pos.get_mut(k1).map(|val| { *val = updated; });
+            updated_pos.get_mut(k1).map(|val| { *val = updated; });
         }
     }
 
-    panic!("Not implemented!");
+    for (edge, len) in render_info.rod_info.iter() {
+        let a: &V = &edge.a;
+        let b: &V = &edge.b;
+
+        // TODO (GM): Remove?
+        // let old_pos_a = render_info.pos_info.get(a).unwrap();
+        // let old_pos_b = render_info.pos_info.get(b).unwrap();
+        // let old_dist = get_2_norm(old_pos_b, old_pos_a);
+        let old_dist = *len;
+
+        let new_pos_a = updated_pos.get(a).unwrap();
+        let new_pos_b = updated_pos.get(b).unwrap();
+
+        let new_dist = get_2_norm(new_pos_b, new_pos_a);
+
+        // TODO (GM): Is this correct?
+        let unit_vec = get_unit_vector(new_pos_a, new_pos_b);
+        let applied_mech_force_a = calc_mechanical_force(old_dist,
+            new_dist,
+            &unit_vec);
+
+        let applied_mech_force_b = mul(&applied_mech_force_a, -1.0);
+
+        // TODO (GM): Does this work?
+        updated_pos.get_mut(a).map(|val| { *val = applied_mech_force_a });
+        updated_pos.get_mut(b).map(|val| { *val = applied_mech_force_b });
+    }
+
+    render_info.pos_info = updated_pos;
 }
 
 /// HashMap to map values to rod lengths.
@@ -169,7 +196,12 @@ fn init_pos_map<V: Clone, E: Clone>(graph: &Graph<V, E>) -> HashMap<V, Position>
 
 // TODO (GM): Documentation!
 pub fn visualize<V: Clone, E: Clone>(graph: &Graph<V, E>) where V: Eq, V: Hash {
-    let pos_map = init_pos_map(&graph);
-    let charge_map = init_charge_map(&graph);
-    let len_map = init_len_map(&graph);
+    let mut render_info = RenderInfo {
+        pos_info: init_pos_map(&graph),
+        charge_info: init_charge_map(&graph),
+        rod_info: init_len_map(&graph),
+    };
+
+    // TODO (GM): Re-apply this until it converges?
+    update_positions(&mut render_info);
 }
