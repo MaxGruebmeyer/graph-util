@@ -222,8 +222,8 @@ pub fn visualize<V: Clone, E: Clone>(graph: &Graph<V, E>) where V: Eq, V: Hash {
         rod_info: init_rod_map(&graph),
     };
 
-    // TODO (GM): Re-apply this until it converges?
-    for _ in 0..5 {
+    // TODO (GM): This clearly does not work!
+    for _ in 0..250 {
         let diff = update_positions(&mut render_info);
         println!("New difference is {diff}");
     }
