@@ -224,9 +224,15 @@ pub fn visualize<V: Clone, E: Clone>(graph: &Graph<V, E>) where V: Eq, V: Hash {
         rod_info: init_rod_map(&graph),
     };
 
-    // TODO (GM): This clearly does not work!
+    // That should be small enough
+    let tol = 10e-10;
     for _ in 0..250 {
         let diff = update_positions(&mut render_info);
+        if diff < tol {
+            println!("Diff {diff} is smaller than tolerance {tol}!");
+            break;
+        }
+
         println!("New difference is {diff}");
     }
 }
