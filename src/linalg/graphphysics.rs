@@ -1,6 +1,7 @@
 use crate::linalg::structs::*;
 use crate::linalg::vectorarithmetic::*;
 use crate::linalg::physics::*;
+use crate::linalg::graphstructs::*;
 
 use std::{
     collections::HashMap,
@@ -12,18 +13,6 @@ const DRIFT_TOL: f64 = 10e-10;
 
 /// Max amount of iterations until the calculation is aborted
 const MAX_DRIFT_ITERATIONS: usize = 250;
-
-#[derive(Clone, Hash, Eq, PartialEq)]
-pub struct EdgeId<V> where V: Clone, V: Eq, V: Hash {
-    pub a: V,
-    pub b: V,
-}
-
-pub struct RenderInfo<V> where V: Clone, V: Eq, V: Hash {
-    pub pos_info: HashMap<V, Pos3D>,
-    pub charge_info: HashMap<V, f64>,
-    pub rod_info: HashMap<EdgeId<V>, f64>,
-}
 
 fn get_diff<V: Hash + Eq>(map_a: &HashMap<V, Pos3D>, map_b: &HashMap<V, Pos3D>) -> f64 {
     let mut norm: f64 = 0.0;
